@@ -1,0 +1,51 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-12 11:10:34
+ * @FilePath: /vue_basic/7.事件处理/事件基本使用.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件基本使用</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 
+      事件的基本使用：
+        1.使用v-on:xxx 或 @xxx 绑定事件，其中xxx是事件名；
+        2.事件的回调需要配置在methods对象中，最终会在vm上；
+        3.methods中配置的函数，不要用箭头函数！否则this就不是vm了；
+        4.methods中配置的函数，都是被Vue所管理的函数，this的指向是vm 或 组件实例对象；
+        5.@click="demo" 和 @click="demo($event)" 效果一致，但后者可以传参；
+   -->
+    <!-- 事件基本使用 -->
+    <button @click="showMsg">点我显示提示信息</button>
+    <!-- 事件传参 -->
+    <button @click="showInfo($event, 'hello')">点我显示信息（传参）</button>
+  </div>
+  
+  <script>
+		Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+    const vm = new Vue({
+      methods: {
+        showMsg(event) {
+          console.log("event:",event.target)
+          alert(1);
+        },
+        showInfo(event, msg) {
+          console.log("$event:", event, msg)
+        }
+      }
+    });
+    vm.$mount('#demo');
+    console.log(vm)
+    
+
+  </script>
+</body>
+</html>

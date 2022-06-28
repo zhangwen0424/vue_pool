@@ -1,0 +1,37 @@
+<!--
+ * @Date: 2021-09-28 13:39:49
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-09-28 13:45:00
+ * @FilePath: /vue_basic/2.模板语法/模板语法.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模板语法</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 插值语法 -->
+    <h1>插值语法</h1>
+    <h3>hello, {{name}}</h3>
+    <!-- 指令语法 -->
+    <h1>指令语法</h1>
+    <h3><a :href="url">点我进入主页</a></h3>
+    <h3><a v-bind:href="url">点我进入主页</a></h3>
+  </div>
+  <script>
+    new Vue({
+      el: '#demo',
+      data: {
+        name: 'mornki',
+        url: 'https://github.com/zhangwen0424'
+      }
+    })
+  </script>
+  
+</body>
+</html>

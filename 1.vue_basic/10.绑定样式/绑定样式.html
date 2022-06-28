@@ -1,0 +1,85 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-18 10:48:25
+ * @FilePath: /vue_basic/10.绑定样式/绑定样式.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绑定样式</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 
+      绑定样式：
+        1. class样式
+            写法:class="xxx" xxx可以是字符串、对象、数组。
+                字符串写法适用于：类名不确定，要动态获取。
+                对象写法适用于：要绑定多个样式，个数不确定，名字也不确定。
+                数组写法适用于：要绑定多个样式，个数确定，名字也确定，但不确定用不用。
+        2. style样式
+            :style="{fontSize: xxx}"其中xxx是动态值。
+            :style="[a,b]"其中a、b是样式对象。
+    -->
+
+    <!-- 绑定class样式 -->
+    <h1>绑定class样式</h1>
+    <!-- 绑定class样式--字符串写法，适用于：样式的类名不确定，需要动态指定 -->
+    <div :class="mood" @click='changeMood'>字符串写法,点我改变样式</div>
+    <!-- 绑定class样式--数组写法，适用于：要绑定的样式个数不确定、名字也不确定 -->
+    <div :class='classArr'>数组绑定</div>
+    <!-- 绑定class样式--对象写法，适用于：要绑定的样式个数确定、名字也确定，但要动态决定用不用 -->
+    <div :class="classObj">对象绑定</div>
+
+    <h1>绑定style样式</h1>
+    <!-- 绑定style样式--对象写法 -->
+    <div :style="styleObj">数组绑定</div>
+			<!-- 绑定style样式--数组写法 -->
+    <div :style=""></div>
+  </div>
+  <style>
+    #demo div{ width:200px; height:30px;padding:20px;}
+    .border{ border: 1px solid #000 }
+    .background{ background-color: red }
+    .color{ color: blue; }
+  </style>
+  <script>
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+    const vm = new Vue({
+      data(){
+        return {
+          mood: '',
+          classArr: ['border','color'],
+          classObj: {
+            border: true,
+            color: false,
+          },
+          styleObj: {
+            backgroundColor: "red"
+          },
+          styleObj2: [{
+            backgroundColor: "grey",
+          }, {
+            "fontSize": "12px"
+          }]
+        }
+      },
+      methods: {
+        changeMood() {
+          const arr = ['border', 'background', 'color']
+          const index = Math.floor(Math.random()*3);
+          this.mood = arr[index];
+        },
+      },
+    });
+    console.log(vm);
+    vm.$mount('#demo');
+  </script>
+</body>
+</html>

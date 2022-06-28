@@ -1,0 +1,53 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-11 16:47:52
+ * @FilePath: /vue_basic/4.el和data的两种写法/el和data的两种写法.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>el和data的两种写法.html</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">hello，{{name}}</div>
+  <script>
+    // el的两种写法
+    /* const vm = new Vue({
+      el: '#demo',//第一种写法
+      data: {
+        name: 'mornki'
+      }
+    }); 
+    console.log(vm)
+    vm.$mount('#demo');//第二种写法 */
+
+    // data的两种写法
+    const vm = new Vue({
+      // data: {// data的第一中写法：对象式
+      //   name: 'mornki'
+      // },
+      data(){// data的第二中写法：函数式
+        return {
+          name: 'mornki'
+        }
+      }
+    });
+    // vue3中的写法，需要引入vue3
+    /* const vm = {
+      data(){
+        return {
+          name:mornki
+        }
+      }
+    }
+    Vue.createApp(vm).mount("#demo") */
+    
+
+  </script>
+</body>
+</html>

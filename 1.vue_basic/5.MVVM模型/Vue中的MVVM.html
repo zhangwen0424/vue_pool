@@ -1,0 +1,41 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-11 16:49:05
+ * @FilePath: /vue_basic/5.MVVM模型/Vue中的MVVM.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue中的MVVM</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- data中所有属性都出现在vm中 -->
+    <h1>data中所有属性都出现在vm中,可以直接访问</h1>
+    hello，{{name}}
+    <!-- vm中所有属性及其原型上所有属性都可以访问 -->
+    <h1>可以访问vm上属性$options: {{$options}}</h1>
+    <h1>可以访问vm上原型上的方法属性$once: {{$once}}</h1>
+  </div>
+  
+  <script>
+    Vue.config.productionTip = false;
+    const vm = new Vue({
+      data(){
+        return {
+          name: 'mornki'
+        }
+      }
+    });
+    vm.$mount('#demo');
+    console.log(vm)
+    
+
+  </script>
+</body>
+</html>

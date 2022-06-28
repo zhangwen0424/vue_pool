@@ -1,0 +1,19 @@
+{
+  "name": "vue_basic",
+  "version": "1.0.0",
+  "description": "vue basic",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangwen0424/vue_basic.git"
+  },
+  "author": "mornki",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhangwen0424/vue_basic/issues"
+  },
+  "homepage": "https://github.com/zhangwen0424/vue_basic#readme"
+}

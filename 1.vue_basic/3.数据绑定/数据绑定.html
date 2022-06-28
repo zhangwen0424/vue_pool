@@ -1,0 +1,33 @@
+<!--
+ * @Date: 2021-09-28 13:51:03
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-09-28 13:53:12
+ * @FilePath: /vue_basic/3.数据绑定/数据绑定.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据绑定</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    单向绑定：<input type="text" :value="name">
+    <br>
+    双向绑定：<input type="text" v-model="name2">
+  </div>
+  <script>
+    const vm = new Vue({
+      el: '#demo',
+      data: {
+        name:'1',
+        name2:'2'
+      }
+    })
+  </script>
+  
+</body>
+</html>

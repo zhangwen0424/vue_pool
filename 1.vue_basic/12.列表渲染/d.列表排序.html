@@ -1,0 +1,70 @@
+<!--
+ * @Date: 2021-10-13 10:16:00
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-14 14:07:01
+ * @FilePath: /vue_basic/12.列表渲染/d.列表排序.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>列表排序</title>
+  <script type="text/javascript" src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+      <!-- 列表排序 -->
+      <h1>列表排序</h1>
+      <p>过滤：<input type="text" v-model="keyWord" placeholder="请输入姓名关键字"></p>
+      <p>
+        排序：<span v-if="sortType==0">原顺序</span>
+          <span v-else-if="sortType==-1">降序</span>
+          <span v-else>升序</span>
+          <button @click="sortType = 0">原顺序</button>
+          <button @click="sortType = -1">年龄降序</button>
+          <button @click="sortType = 1">年龄升序</button>
+      </p>
+      <ul>
+        <li v-for="(p,index) of filterPeoples" :key="p.id">
+          <p> 姓名：{{p.name}}, 年龄：{{p.age}} </p>
+        </li>
+      </ul>
+    </div>
+  <script>
+    Vue.config.productionTip = false;//阻止vue在启动时生成生产环境提示
+
+    // computed实现
+    const vm = new Vue({
+      el: '#root', 
+      data: {
+        keyWord: '',
+        peoples: [
+          {id:1, name: '张三', age:18},
+          {id:2, name: '王五', age:19},
+          {id:3, name: '李四', age:26},
+          {id:4, name: '李四四', age:16},
+          {id:5, name: '王三', age:22},
+        ],
+        sortType:0,
+      },
+      computed: {
+        filterPeoples() {
+          // 注意filter里面需要是箭头函数，不然this指向不是vm
+          const arr = this.peoples.filter((p)=>{
+            return p.name.indexOf(this.keyWord) != -1;
+          });
+          // 判断是否需要排序
+          if(this.sortType) {
+            arr.sort((p1,p2)=>{
+              return this.sortType == 1 ? p1.age-p2.age : p2.age-p1.age;
+            });
+          }
+          return arr;
+        }
+      },
+    });
+  </script>
+</body>
+</html>

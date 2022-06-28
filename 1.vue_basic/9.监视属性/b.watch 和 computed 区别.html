@@ -1,0 +1,72 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-12 22:53:50
+ * @FilePath: /vue_basic/9.监视属性/b.watch 和 computed 区别.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>watch 和 computed 区别</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 
+      computed和watch之间的区别：
+          1.computed能完成的功能，watch都可以完成。
+          2.watch能完成的功能，computed不一定能完成，例如：watch可以进行异步操作。
+      两个重要的小原则：
+          1.所被Vue管理的函数，最好写成普通函数，这样this的指向才是vm 或 组件实例对象。
+          2.所有不被Vue所管理的函数（定时器的回调函数、ajax的回调函数等、Promise的回调函数），最好写成箭头函数，
+            这样this的指向才是vm 或 组件实例对象。
+    -->
+    姓：<input type="text" v-model="firstname"><br/>
+    名：<input type="text" v-model="lastname"><br/>
+    姓名(使用 watch )：<label for="fullname">{{fullname}}</label><br/>
+    姓名(使用 computed )：<label for="fullname">{{name}}</label><br/>
+  </div>
+  <script>
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+    const vm = new Vue({
+      data(){
+        return {
+          firstname: '张',
+          lastname: '三',
+          fullname: '张-三'
+        }
+      },
+      computed: {
+        name() {
+          console.log("computed： get被调用了")
+          return this.firstname + '-' + this.lastname;
+          // 下面代码不能正确返回name，返回了空值
+          /* setTimeout(()=>{
+            console.log("computed： get被调用了")
+            return this.firstname + '-' + this.lastname;
+          }, 3000) */
+        }
+      },
+      watch: {
+        firstname(val) {
+          // 下面代码会延迟执行
+          setTimeout(()=>{
+            console.log("watch：this:", this)
+            console.log("watch：firstname被改了", val);
+            this.fullname = val +'-'+ this.lastname;
+          }, 3000)
+        },
+        lastname(val) {
+          console.log("watch：lastname 被改了", val);
+          this.fullname = this.firstname+'-'+val
+        }
+      },
+    });
+    vm.$mount('#demo');
+  </script>
+</body>
+</html>

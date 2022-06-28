@@ -1,0 +1,74 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-12 11:37:01
+ * @FilePath: /vue_basic/7.事件处理/事件修饰符.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事件修饰符</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 
+      Vue中的事件修饰符：
+        1.prevent：阻止默认事件（常用）；
+        2.stop：阻止事件冒泡（常用）；
+        3.once：事件只触发一次（常用）；
+        4.capture：使用事件的捕获模式；
+        5.self：只有event.target是当前操作的元素时才触发事件；
+        6.passive：事件的默认行为立即执行，无需等待事件回调执行完毕；
+    -->
+
+    <!-- 阻止默认事件（常用） -->
+    <a href="http://baidu.com" @click.prevent>点我跳转</a>
+    <!-- 阻止事件冒泡（常用）-->
+    <div style="width:100px;padding:20px; background-color: red;" @click="showMsg('div')">
+      <button @click.stop="showMsg('button')">阻止事件冒泡</button>
+      <!-- 修饰符可以连用 -->
+      <a href="http://baidu.com" @click.prevent.stop>点我跳转</a>
+    </div>
+    <!-- 事件只触发一次（常用） -->
+    <button @click.once="showMsg('我被点击了')">点我显示提示信息</button>
+    <!-- 使用事件的捕获模式：点button先弹出div在弹出button -->
+    <div style="width:100px;padding:20px; background-color: red;" @click.capture="showMsg('div')">
+      <button @click="showMsg('button')">使用事件的捕获模式</button>
+    </div>
+    <!-- 只有event.target是当前操作的元素时才触发事件 -->
+    <div style="width:100px;padding:20px; background-color: blue;" @click.self="showMsg('div')">
+      <button @click="showMsg('button')">只有event.target是当前操作的元素时才触发事件</button>
+    </div>
+    <!-- 事件的默认行为立即执行，无需等待事件回调执行完毕 -->
+    <ul @wheel.passive="log" style="border:1px solid black;height: 50px;width:200px;overflow-y: auto;">
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+    </ul>
+  </div>
+  
+  <script>
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+    const vm = new Vue({
+      methods: {
+        showMsg(msg) {
+          alert(msg);
+        },
+        log() {
+          let i=0
+          while(i<100) {
+            i++;
+            console.log('#')
+          }
+        }
+      },
+    });
+    vm.$mount('#demo');
+    console.log(vm)
+  </script>
+</body>
+</html>

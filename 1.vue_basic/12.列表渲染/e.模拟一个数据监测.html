@@ -1,0 +1,42 @@
+<!--
+ * @Date: 2021-10-13 10:16:00
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-14 14:07:05
+ * @FilePath: /vue_basic/12.列表渲染/e.模拟一个数据监测.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟一个数据监测</title>
+</head>
+<body>
+  <script>
+    let data = {
+      name: 'mornki',
+      age: '18'
+    }
+    // 创建一个监测的实例对象，用于监测data中的数据
+    const obs = new Observer(data);
+    console.log("obs:", obs);
+
+    function Observer(obj) {
+      let keys = Object.keys(obj);
+      keys.forEach((k)=>{
+        Object.defineProperty(this, k, {
+          set(val){
+            console.log("set被调用", val);
+            obj[k] = val;
+          },
+          get(){
+            console.log("get被调用了");
+            return obj[k];
+          }
+        })
+      })
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!--
+ * @Date: 2021-10-13 10:16:00
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-14 14:06:53
+ * @FilePath: /vue_basic/12.列表渲染/c.列表过滤.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>列表过滤</title>
+  <script type="text/javascript" src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+      <!-- 列表过滤 -->
+      <h1>列表过滤</h1>
+      过滤：<input type="text" v-model="keyWord" placeholder="请输入姓名关键字">
+      <ul>
+        <li v-for="(p,index) of filterPeoples" :key="p.id">
+          <p> 姓名：{{p.name}}, 年龄：{{p.age}} </p>
+        </li>
+      </ul>
+    </div>
+  <script>
+    Vue.config.productionTip = false;//阻止vue在启动时生成生产环境提示
+
+    // watch实现
+    /* const vm = new Vue({
+      el:'#root',
+      data: {
+        keyWord: '',
+        peoples: [
+          {id:1, name: '张三', age:18},
+          {id:2, name: '王五', age:19},
+          {id:3, name: '李四', age:26},
+        ],
+        filterPeoples: [],
+      },
+      watch: {
+        keyWord: {
+          immediate:true,
+          handler(val) {
+            this.filterPeoples = this.peoples.filter(function(p) {
+              return p.name.indexOf(val) != -1;
+            })
+          }
+        }
+      },
+    }); */
+    
+    // computed实现
+    const vm = new Vue({
+      el: '#root', 
+      data: {
+        keyWord: '',
+        peoples: [
+          {id:1, name: '张三', age:18},
+          {id:2, name: '王五', age:19},
+          {id:3, name: '李四', age:26},
+        ],
+      },
+      computed: {
+        filterPeoples() {
+          // 注意filter里面需要是箭头函数，不然this指向不是vm
+          return this.peoples.filter((p)=>{
+            return p.name.indexOf(this.keyWord) != -1;
+          })
+        }
+      },
+    });
+  </script>
+</body>
+</html>

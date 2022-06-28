@@ -1,0 +1,114 @@
+<!--
+ * @Date: 2021-09-28 13:56:06
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-12 22:34:58
+ * @FilePath: /vue_basic/9.监视属性/监视属性.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>监视属性</title>
+  <script src="../js/vue.js"></script>
+</head>
+<body>
+  <div id="demo">
+    <!-- 
+      监视属性watch：
+        1.当被监视的属性变化时, 回调函数自动调用, 进行相关操作
+        2.监视的属性必须存在，才能进行监视！！
+        3.监视的两种写法：
+            (1).new Vue时传入watch配置
+            (2).通过vm.$watch监视
+
+      深度监视：
+        (1).Vue中的watch默认不监测对象内部值的改变（一层）。
+        (2).配置deep:true可以监测对象内部值改变（多层）。
+      备注：
+        (1).Vue自身可以监测对象内部值的改变，但Vue提供的watch默认不可以！
+        (2).使用watch时根据数据的具体结构，决定是否采用深度监视。
+    -->
+
+   <h1>今天天气很{{info}}</h1>
+   <button @click="changeWeather">点击切换天气</button><hr/>
+   <!-- watch检测一层 -->
+   <h1>a值是：{{numbers.a}}</h1>
+   <button @click='numbers.a++'>点我 a+1</button><hr/>
+   <!-- watch检测多层 -->
+   <h1>bbb值是：{{numbers.b.bb.bbb}}</h1>
+   <button @click='numbers.b.bb.bbb++'>点我 bbb+1</button>
+
+
+  
+  </div>
+  <script>
+    Vue.config.productionTip = false //阻止 vue 在启动时生成生产提示。
+
+    const vm = new Vue({
+      data(){
+        return {
+          isHot: true,
+          numbers: {
+            a: 1,
+            b: {
+              bb: {
+                bbb:2
+              }
+            }
+          }
+        }
+      },
+      methods: {
+        changeWeather() {
+          this.isHot = !this.isHot;
+          return this.isHot;
+        },
+      },
+      computed: {
+        info(){
+          return this.isHot?'炎热':'凉爽'
+        } 
+      },
+      // watch 的第一种写法
+      watch: {
+        // 正常写法
+        isHot: {
+          immediate: true,//初始化的时候默认调用一下
+          //handler什么时候调用？当isHot发生改变时。
+          handler(newValue, oldValue) {
+            console.log("isHot 被修改了", newValue, oldValue);
+          }
+        },
+        // 简写
+        // isHot(newValue, oldValue){
+        //   console.log("isHot 被修改了", newValue, oldValue);
+        // },
+        // 检测多级结构中某个属性变化，a变化调用handler
+        'numbers.a': {
+          handler(newValue, oldValue){
+            console.log("a 被改变了", newValue, oldValue)
+          }
+        },
+        // 检测多级结构中全部属性变化，变化不调用 handler
+        'numbers': {
+          deep: true,
+          handler(newValue, oldValue){
+            console.log("numbers 被改变了", newValue, oldValue)
+          }
+        }
+      }
+    });
+    console.log(vm);
+    vm.$mount('#demo');
+    //  watch 第二种写法
+    /* vm.$watch('isHot',{
+      immediate: true,
+      handler(newValue, oldValue) {
+        console.log("isHot被修改了", newValue, oldValue)
+      }
+    }) */
+  </script>
+</body>
+</html>

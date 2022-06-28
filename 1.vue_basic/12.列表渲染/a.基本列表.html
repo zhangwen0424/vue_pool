@@ -1,0 +1,68 @@
+<!--
+ * @Date: 2021-10-13 10:16:00
+ * @LastEditors: zhangwen
+ * @LastEditTime: 2021-10-14 14:06:41
+ * @FilePath: /vue_basic/12.列表渲染/a.基本列表.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基本列表</title>
+  <script type="text/javascript" src="../js/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+      <!-- 
+        v-for指令:
+          1.用于展示列表数据
+          2.语法：v-for="(item, index) in xxx" :key="yyy"
+          3.可遍历：数组、对象、字符串（用的很少）、指定次数（用的很少）
+      -->
+      <!-- 遍历数组 -->
+      <h1>遍历数组</h1>
+      <ul>
+        <li v-for="(p,index) of peoples">
+          <p>姓名：{{p.name}}, 年龄：{{p.age}}</p>
+        </li>
+      </ul>
+      <!-- 遍历对象 -->
+      <h1>遍历对象</h1>
+      <ul>
+        <li v-for="(val,key) of note"> {{key}}：{{val}}</li>
+      </ul>
+      <!-- 遍历字符串 -->
+      <h1>遍历字符串</h1>
+      <ul>
+        <li v-for="(char, index) of str">{{char}}：{{index}}</li>
+      </ul>
+      <!-- 指定次数(n从1开始，index为下标从0开始) -->
+      <h1>指定次数</h1>
+      <ul>
+        <li v-for="(n, index) of 4">{{n}}：{{index}}</li>
+      </ul>
+    </div>
+  <script>
+    Vue.config.productionTip = false;//阻止vue在启动时生成生产环境提示
+
+    const vm = new Vue({
+      el:'#root',
+      data: {
+        peoples: [
+          {id:1, name: '张三', age:18},
+          {id:2, name: '王五', age:19},
+          {id:3, name: '李四', age:26},
+        ],
+        note: {
+          title: 'vue记录',
+          page: 1000,
+          author: 'mornki'
+        },
+        str: 'hello!mornki!'
+      }
+    })
+  </script>
+</body>
+</html>
