@@ -1,6 +1,6 @@
 # Vue 脚手架使用
 
-[codeserver 在线查看](https://github1s.com/zhangwen0424/vue_test)
+[codeserver 在线查看](https://github.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
 
 ## 开始一个项目
 
@@ -418,7 +418,7 @@ Vue.use(plugins, 1, 2, 3);
 
 ## 总结 TodoList 案例
 
-```
+```txt
 1. 组件化编码流程：
       (1).拆分静态组件：组件要按照功能点拆分，命名不要与html元素冲突。
       (2).实现动态组件：考虑好数据的存放位置，数据是一个组件在用，还是一些组件在用：
@@ -666,11 +666,11 @@ export default {
    1. 第一种方式，在父组件中：`<Demo @atguigu="test"/>` 或 `<Demo v-on:atguigu="test"/>`
    2. 第二种方式，在父组件中：
       ```js
-      <Demo ref="demo"/>
-      ......
-      mounted(){
-         this.$refs.xxx.$on('atguigu',this.test)
-      }
+        <Demo ref="demo"/>
+        ......
+        mounted(){
+          this.$refs.xxx.$on('atguigu',this.test)
+        }
       ```
    3. 若想让自定义事件只能触发一次，可以使用`once`修饰符，或`$once`方法。
 4. 触发自定义事件：`this.$emit('atguigu',数据)`
@@ -1676,96 +1676,148 @@ app.listen(5000, (err) => {
 
 注意：父组件模板的所有东西都会在父级作用域内编译；子组件模板的所有东西都会在子级作用域内编译。父组件不可以使用子组件的数据，通过 slot-scope 作用域插槽解决此类问题。
 
-1. 作用：让父组件可以向子组件指定位置插入 html 结构，也是一种组件间通信的方式，适用于 <strong style="color:red">父组件 ===> 子组件</strong> 。
-2. 分类：默认插槽、具名插槽、作用域插槽
-3. 使用方式：
+1.  作用：让父组件可以向子组件指定位置插入 html 结构，也是一种组件间通信的方式，适用于 <strong style="color:red">父组件 ===> 子组件</strong> 。
+2.  分类：默认插槽、具名插槽、作用域插槽
+3.  使用方式：
 
-   1. 默认插槽：
+    1.  默认插槽：
+
+        ```vue
+        <!-- 父组件中： -->
+        <Category>
+          <div>html结构1</div>
+        </Category>
+
+        <!-- 子组件中： -->
+        <template>
+          <div>
+            <!-- 定义一个插槽（挖个坑，等着组件的使用者进行填充） -->
+            <slot>插槽默认内容...</slot>
+          </div>
+        </template>
+        ```
+
+    2.  具名插槽：
+
+              Category.vue
+
+              ```vue
+                   <template>
+                      <h3>{{title}}分类</h3>
+                      <!-- 定义一个插槽（挖个坑，等着组件的使用者进行填充） -->
+                      <!-- 默认插槽 -->
+                      <slot>我是一些默认值，当使用者没有传递具体结构时，我会出现</slot>
+                      <!-- 具名插槽 -->
+                      <slot name="food"></slot>
+                      <slot name="game"></slot>
+                    </div>
+                  </template>
+
+                  <script>
+                  export default {
+                    name: 'Category',
+                    props: ['title']
+                  }
+                  </script>
+              ```
+
+              App.vue
+
+              ```vuexLocal
+
+              <template>
+                <div class="container">
+                  <!-- 默认插槽内容会出现 -->
+                  <Category title="空的"></Category>
+
+
+                <Category title="foods">
+                  <h4>我是一些食物</h4>
+                  <h4 slot="food">我是一些食物~~~</h4>
+                </Category>
+
+                <Category title="games">
+                  <h4>我是一些游戏</h4>
+                  <!-- 传入了两个同名插槽 game，两个相同名称插槽都会插入到指定插槽位置 -->
+                  <h4 slot="game">我是一些游戏!!!!</h4>
+                  <!-- template用于多个插槽内容合并一个插槽，，v-slot写法必须用于template模板中 -->
+                  <!-- 报错：v-slot只能用于 template中 <h4 v-slot="game">我是一些游戏!!!!</h4> -->
+                  <template slot="game">
+                    <h5>我是一些游戏~~~</h5>
+                    <h5>我是一些游戏~~~</h5>
+                  </template>
+                </Category>
+
+                <Category title="films">
+                  <h4>我是一些电影</h4>
+                </Category>
+            </div>
+          </template>
+
+          <script>
+          import Category from "./components/Category.vue";
+
+          export default {
+            name: "App",
+            data() {
+              return {
+                foods: ["火锅", "烧烤", "小龙虾", "牛排"],
+                games: ["红色警戒", "穿越火线", "劲舞团", "超级玛丽"],
+                films: ["《教父》", "《拆弹专家》", "《你好，李焕英》", "《尚硅谷》"],
+              };
+            },
+            components: {
+              Category,
+            },
+          };
+          </script>
+         ```
+
+4. 作用域插槽：
+
+   1. 理解：<span style="color:red">数据在组件的自身，但根据数据生成的结构需要组件的使用者来决定。</span>（games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定）
+   2. 具体编码：
+
       ```vue
       <!-- 父组件中： -->
       <Category>
-                 <div>html结构1</div>
-              </Category>
+         <template scope="scopeData">
+           <!-- 生成的是ul列表 -->
+           <ul>
+             <li v-for="g in scopeData.games" :key="g">{{g}}</li>
+           </ul>
+         </template>
+       </Category>
+
+      <Category>
+         <template slot-scope="scopeData">
+           <!-- 生成的是h4标题 -->
+           <h4 v-for="g in scopeData.games" :key="g">{{g}}</h4>
+         </template>
+       </Category>
       <!-- 子组件中： -->
       <template>
         <div>
-          <!-- 定义插槽 -->
-          <slot>插槽默认内容...</slot>
+          <slot :games="games"></slot>
         </div>
       </template>
-      ```
-   2. 具名插槽：
-
-      ```vue
-      父组件中：
-      <Category>
-                  <!-- 或者这种写法：slot-scope="center" -->
-                  <template slot="center">
-                    <div>html结构1</div>
-                  </template>
-                  <!-- 或者下面写法，两个相同名称插槽都会插入到指定插槽位置 -->
-                  <div slot="center">html结构1</div>
-      
-                  <!-- template写法用于插槽内容多个元素合并一个，v-slot写法必须用于template模板中 -->
-                  <template v-slot:footer>
-                     <div>html结构2</div>
-                  </template>
-              </Category>
-      子组件中：
-      <template>
-        <div>
-          <!-- 定义插槽，name传入插槽名称 -->
-          <slot name="center">插槽默认内容...</slot>
-          <slot name="footer">插槽默认内容...</slot>
-        </div>
-      </template>
+      <script>
+      export default {
+        name: "Category",
+        props: ["title"],
+        //数据在子组件自身
+        data() {
+          return {
+            games: ["红色警戒", "穿越火线", "劲舞团", "超级玛丽"],
+          };
+        },
+      };
+      </script>
       ```
 
-   3. 作用域插槽：
+```
 
-      1. 理解：<span style="color:red">数据在组件的自身，但根据数据生成的结构需要组件的使用者来决定。</span>（games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定）
-      2. 具体编码：
-
-         ```vue
-         父组件中：
-         <Category>
-         			<template scope="scopeData">
-         				<!-- 生成的是ul列表 -->
-         				<ul>
-         					<li v-for="g in scopeData.games" :key="g">{{g}}</li>
-         				</ul>
-         			</template>
-         		</Category>
-
-         <Category>
-         			<template slot-scope="scopeData">
-         				<!-- 生成的是h4标题 -->
-         				<h4 v-for="g in scopeData.games" :key="g">{{g}}</h4>
-         			</template>
-         		</Category>
-         子组件中：
-         <template>
-           <div>
-             <slot :games="games"></slot>
-           </div>
-         </template>
-         <script>
-         export default {
-           name: "Category",
-           props: ["title"],
-           //数据在子组件自身
-           data() {
-             return {
-               games: ["红色警戒", "穿越火线", "劲舞团", "超级玛丽"],
-             };
-           },
-         };
-         </script>
-         ```
-
-   ```
-
-   ```
+```
 
 **新的插槽写法(vue2.6 版本后，2019-06 后)**
 
