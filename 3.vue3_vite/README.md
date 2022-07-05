@@ -237,6 +237,36 @@ function sayHello() {
   - 基本类型的数据：响应式依然是靠`Object.defineProperty()`的`get`与`set`完成的。
   - 对象类型的数据：内部 <i style="color:gray;font-weight:bold">“ 求助 ”</i> 了 Vue3.0 中的一个新函数—— `reactive`函数。
 
+App.vue
+```vue
+<template>
+  <h1>人员姓名：{{ name }}</h1>
+  <h1>人员年龄：{{ age }}</h1>
+  <h3>工作种类：{{ job.type }}</h3>
+  <h3>工作薪水：{{ job.salary }}</h3>
+  <button @click="changeInfo">修改信息</button>
+</template>
+
+<script setup>
+import { ref } from "vue";
+let name = ref("王五");
+let age = ref(20);
+let job = ref({
+  type: "前端工程师",
+  salary: "30K",
+});
+//方法
+function changeInfo() {
+  // name.value = "李四";
+  // age.value = 48;
+  console.log(job.value);
+  // job.value.type = "UI设计师";
+  // job.value.salary = "60K";
+  // console.log(name, age);
+}
+</script>
+```
+
 ## 3.reactive 函数
 
 - 作用: 定义一个<strong style="color:#DD5145">对象类型</strong>的响应式数据（基本类型不要用它，要用`ref`函数）
