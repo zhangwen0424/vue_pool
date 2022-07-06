@@ -238,6 +238,7 @@ function sayHello() {
   - 对象类型的数据：内部 <i style="color:gray;font-weight:bold">“ 求助 ”</i> 了 Vue3.0 中的一个新函数—— `reactive`函数。
 
 App.vue
+
 ```vue
 <template>
   <h1>人员姓名：{{ name }}</h1>
@@ -267,16 +268,58 @@ function changeInfo() {
 </script>
 ```
 
-## 3.reactive 函数
+### 3.reactive 函数
 
 - 作用: 定义一个<strong style="color:#DD5145">对象类型</strong>的响应式数据（基本类型不要用它，要用`ref`函数）
 - 语法：`const 代理对象= reactive(源对象)`接收一个对象（或数组），返回一个<strong style="color:#DD5145">代理对象（Proxy 的实例对象，简称 proxy 对象）</strong>
 - reactive 定义的响应式数据是“深层次的”。
 - 内部基于 ES6 的 Proxy 实现，通过代理对象操作源对象内部数据进行操作。
 
-## 4.Vue3.0 中的响应式原理
+```vue
+<template>
+  <h1>人员姓名：{{ name }}</h1>
+  <h1>人员年龄：{{ age }}</h1>
+  <h3>工作种类：{{ job.type }}</h3>
+  <h3>工作薪水：{{ job.salary }}</h3>
+  <h3>test: {{ job.test.a.aa.aaa }}</h3>
+  <h3>arr: {{ job.arr }}</h3>
+  <button @click="changeInfo">修改信息</button>
+</template>
 
-### vue2.x 的响应式
+<script setup>
+import { ref, reactive } from "vue";
+let name = ref("王五");
+let age = ref(20);
+let job = reactive({
+  type: "前端工程师",
+  salary: "30K",
+  test: {
+    a: {
+      aa: {
+        aaa: 2,
+      },
+    },
+  },
+  arr: [1, 2, 3],
+});
+let age_r = reactive(20);
+/**
+ * reactive 和 ref 都是用来定义响应式数据的 reactive更推荐去定义复杂的数据类型 ref 更推荐定义基本类型
+  ref 和 reactive 本质我们可以简单的理解为ref是对reactive的二次包装, ref定义的数据访问的时候要多一个.value
+  使用ref定义基本数据类型,ref也可以定义数组和对象。
+ */
+function changeInfo() {
+  console.log(job);
+  job.test.a.aa.aaa = 4;
+  console.log(age, age_r); //通过 ref 定义的返回对象，通过 reactive 定义的返回值20；
+  job.arr[1] = 11;
+}
+</script>
+```
+
+### 4.Vue3.0 中的响应式原理
+
+#### vue2.x 的响应式
 
 - 实现原理：
 

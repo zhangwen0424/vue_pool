@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 源数据
+      let person = {
+        name: "张三",
+        age: 18,
+      };
+      // vue2响应式原理
+      let p = {};
+      Object.defineProperty(p, "name", {
+        configurable: true, //属性是否可以删除
+        set(newValue) {
+          //有人修改name时调用
+          console.log("name属性被修改了！", newValue);
+          person.name = newValue;
+        },
+        get() {
+          //有人读取name时调用
+          console.log("name属性被读取了！值为：", person.name);
+          return person.name;
+        },
+      });
+      Object.defineProperty(p, "sex", {
+        set(newValue) {
+          console.log("sex 被设置了", newValue);
+        },
+        get() {
+          return person.sex;
+        },
+      });
+
+      // vue3响应式原理
+      let v = {};
+
+      let obj = { a: 1, b: 2 };
+      //通过Object.defineProperty去操作，报错
+      /* try {
+        Object.defineProperty(obj, "c", {
+          get() {
+            return 3;
+          },
+        });
+        Object.defineProperty(obj, "c", {
+          get() {
+            return 4;
+          },
+        });
+      } catch (error) {
+        console.log(error); // TypeError: Cannot redefine property: c
+      } */
+
+      //通过Reflect.defineProperty去操作
+      const x1 = Reflect.defineProperty(obj, "c", {
+        get() {
+          return 3;
+        },
+      });
+      console.log("x1:", x1);
+
+      const x2 = Reflect.defineProperty(obj, "c", {
+        get() {
+          return 4;
+        },
+      });
+      if (x2) {
+        console.log("某某某操作成功了！");
+      } else {
+        console.log("某某某操作失败了！");
+      }
+
+      // console.log('@@@')
+    </script>
+  </body>
+</html>
