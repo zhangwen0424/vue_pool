@@ -346,30 +346,114 @@ function changeInfo() {
   - 通过 Reflect（反射）: 对源对象的属性进行操作。
   - MDN 文档中描述的 Proxy 与 Reflect：
 
-    - Proxy：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+        - Proxy：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
-    - Reflect：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
+        - Reflect：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect
 
-      ```js
-      new Proxy(data, {
-        // 拦截读取属性值
-        get(target, prop) {
-          return Reflect.get(target, prop);
-        },
-        // 拦截设置属性值或添加新属性
-        set(target, prop, value) {
-          return Reflect.set(target, prop, value);
-        },
-        // 拦截删除属性
-        deleteProperty(target, prop) {
-          return Reflect.deleteProperty(target, prop);
+          ```js
+          new Proxy(data, {
+            // 拦截读取属性值
+            get(target, prop) {
+              return Reflect.get(target, prop);
+            },
+            // 拦截设置属性值或添加新属性
+            set(target, prop, value) {
+              return Reflect.set(target, prop, value);
+            },
+            // 拦截删除属性
+            deleteProperty(target, prop) {
+              return Reflect.deleteProperty(target, prop);
+            },
+          });
+
+          proxy.name = "tom";
+          ```
+
+代码
+
+```html
+<script>
+  // 源数据
+  let person = {
+    name: "张三",
+    age: 18,
+  };
+  // vue2响应式原理
+  let p = {};
+  Object.defineProperty(p, "name", {
+    configurable: true, //属性是否可以删除
+    set(newValue) {
+      //有人修改name时调用
+      console.log("name属性被修改了！", newValue);
+      person.name = newValue;
+    },
+    get() {
+      //有人读取name时调用
+      console.log("name属性被读取了！值为：", person.name);
+      return person.name;
+    },
+  });
+  Object.defineProperty(p, "sex", {
+    set(newValue) {
+      console.log("sex 被设置了", newValue);
+    },
+    get() {
+      return person.sex;
+    },
+  });
+
+  // vue3响应式原理
+  const pp = new Proxy(person, {
+    get(target, propName) {
+      console.log("get", target, propName);
+      return Reflect.get(target, propName);
+    },
+    set(target, propName, value) {
+      console.log("set", target, propName, value);
+      Reflect.set(target, propName, value);
+    },
+    deleteProperty(target, propName) {
+      console.log("deleteProperty", target, propName);
+      Reflect.deleteProperty(target, propName);
+    },
+  });
+
+  // Object.defineProperty(obj, name, desc)方法在无法定义属性的时候会抛出异常，而Reflect.defineProperty(obj, name, desc)方法在操作失败时则会返回false
+  let obj = { a: 1, b: 2 };
+  //通过Object.defineProperty去操作，报错
+  /* try {
+        Object.defineProperty(obj, "c", {
+          get() {
+            return 3;
+          },
+        });
+        Object.defineProperty(obj, "c", {
+          get() {
+            return 4;
+          },
+        });
+      } catch (error) {
+        console.log(error); // TypeError: Cannot redefine property: c
+      } */
+
+  //通过Reflect.defineProperty去操作
+  /* const x1 = Reflect.defineProperty(obj, "c", {
+        get() {
+          return 3;
         },
       });
+      console.log("x1:", x1); //true
 
-      proxy.name = "tom";
-      ```
+      const x2 = Reflect.defineProperty(obj, "c", {
+        get() {
+          return 4;
+        },
+      });
+      console.log("x2:", x2); //false */
+</script>
+```
 
-## 5.reactive 对比 ref
+### 5.reactive 对比 ref
 
 - 从定义数据角度对比：
   - ref 用来定义：<strong style="color:#DD5145">基本类型数据</strong>。
@@ -382,7 +466,7 @@ function changeInfo() {
   - ref 定义的数据：操作数据<strong style="color:#DD5145">需要</strong>`.value`，读取数据时模板中直接读取<strong style="color:#DD5145">不需要</strong>`.value`。
   - reactive 定义的数据：操作数据与读取数据：<strong style="color:#DD5145">均不需要</strong>`.value`。
 
-## 6.setup 的两个注意点
+### 6.setup 的两个注意点
 
 - setup 执行的时机
   - 在 beforeCreate 之前执行一次，this 是 undefined。

@@ -38,8 +38,22 @@
       });
 
       // vue3响应式原理
-      let v = {};
+      const pp = new Proxy(person, {
+        get(target, propName) {
+          console.log("get", target, propName);
+          return Reflect.get(target, propName);
+        },
+        set(target, propName, value) {
+          console.log("set", target, propName, value);
+          Reflect.set(target, propName, value);
+        },
+        deleteProperty(target, propName) {
+          console.log("deleteProperty", target, propName);
+          Reflect.deleteProperty(target, propName);
+        },
+      });
 
+      // Object.defineProperty(obj, name, desc)方法在无法定义属性的时候会抛出异常，而Reflect.defineProperty(obj, name, desc)方法在操作失败时则会返回false
       let obj = { a: 1, b: 2 };
       //通过Object.defineProperty去操作，报错
       /* try {
@@ -58,25 +72,19 @@
       } */
 
       //通过Reflect.defineProperty去操作
-      const x1 = Reflect.defineProperty(obj, "c", {
+      /* const x1 = Reflect.defineProperty(obj, "c", {
         get() {
           return 3;
         },
       });
-      console.log("x1:", x1);
+      console.log("x1:", x1); //true
 
       const x2 = Reflect.defineProperty(obj, "c", {
         get() {
           return 4;
         },
       });
-      if (x2) {
-        console.log("某某某操作成功了！");
-      } else {
-        console.log("某某某操作失败了！");
-      }
-
-      // console.log('@@@')
+      console.log("x2:", x2); //false */
     </script>
   </body>
 </html>
