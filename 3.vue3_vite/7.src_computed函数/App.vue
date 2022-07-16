@@ -1,4 +1,6 @@
-<template><Demo /></template>
+<template>
+  <Demo></Demo>
+</template>
 <script>
 import Demo from "./components/Demo.vue";
 export default {

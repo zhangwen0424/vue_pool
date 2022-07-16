@@ -1,4 +1,6 @@
-<template><Demo /></template>
+<template>
+  <Demo />
+</template>
 <script>
 import Demo from "./components/Demo.vue";
 export default {
@@ -6,3 +8,4 @@ export default {
   components: { Demo },
 };
 </script>
+<!--  -->

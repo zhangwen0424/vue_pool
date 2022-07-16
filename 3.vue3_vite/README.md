@@ -128,6 +128,28 @@ npm run dev
       - 如果有重名, setup 优先。
    2. setup 不能是一个 async 函数，因为返回值不再是 return 的对象, 而是 promise, 模板看不到 return 对象中的属性。（后期也可以返回一个 Promise 实例，但需要 Suspense 和异步组件的配合）
 
+#### setup 执行的时机
+
+- 在 beforeCreate 之前执行(一次)，此时组件对象还没创建；
+- this 是 undefined，不能通过 this 来访问 data/computed/methods/props；
+- 其实所有的 composition API 相关回调函数中也都不可以；
+
+#### setup 的返回值
+
+- 一般都返回一个对象：为模板提供数据，也就是模板中可以直接使用此对象中的所有属性/方法
+- 返回对象中的属性会与 data 函数返回对象合并成为组件对象的属性
+- 返回对象中的方法会与 methods 中的方法合并成功组件对象的方法
+- 如果有重名，setup 优先
+- 注意：一般不要混合使用：methods 中可以访问 setup 提供的属性和方法，但在 setup 方法中不能访问 data 和 methods；setup 不能是 async 函数：因为返回值不再是 return 的对象，而不是 promise，模板看不到 return 对象中的属性数据
+
+#### setup 参数
+
+- setup(props,context)/setup(props,{attrs,slots,emit})
+- props：包含 props 配置声明且传入了所有属性的对象
+- attrs：包含没有在 props 配置中声明的属性的对象，相当于 this.$attrs
+- slots：包含所有传入的插槽内容的对象，相当于 this.$slots
+- emit：用来分发自定义事件的函数，相当于 this.$emit
+
 main.js
 
 ```js
@@ -472,43 +494,135 @@ function changeInfo() {
   - 在 beforeCreate 之前执行一次，this 是 undefined。
 - setup 的参数
   - props：值为对象，包含：组件外部传递过来，且组件内部声明接收了的属性。
-  - context：上下文对象
-    - attrs: 值为对象，包含：组件外部传递过来，但没有在 props 配置中声明的属性, 相当于 `this.$attrs`。
-    - slots: 收到的插槽内容, 相当于 `this.$slots`。
-    - emit: 分发自定义事件的函数, 相当于 `this.$emit`。
+  - context：上下文对象 - attrs: 值为对象，包含：组件外部传递过来，但没有在 props 配置中声明的属性, 相当于 `this.$attrs`。 - slots: 收到的插槽内容, 相当于 `this.$slots`。 - emit: 分发自定义事件的函数, 相当于 `this.$emit`。
+    App.vue
 
-## 7.计算属性与监视
+```Vue
+<template>
+  <Demo @showMsg="showMsg" msg="App中国">
+    <template v-slot:a="ad">
+      <div>我是App组件插槽a，我接收到的数据为：{{ ad }}</div>
+    </template>
+    <template v-slot:b>我是App组件插槽b</template>
+  </Demo>
+</template>
+<script>
+import Demo from "./components/Demo.vue";
+export default {
+  components: { Demo },
+  name: "App",
+  setup() {
+    function showMsg(value) {
+      console.log("App showMsg! hello,", value);
+    }
+    return { showMsg };
+  },
+};
+</script>
 
-### 1.computed 函数
+```
+
+Demo.vue
+
+```vue
+<template>
+  <h1>我是 Demo 组件</h1>
+  <h2>人员信息</h2>
+  <h2>姓名：{{ name }}</h2>
+  <h2>App组件中 msg 信息：{{ msg }}</h2>
+  <!-- 具名插槽 -->
+  <slot name="b"></slot>
+  <!-- 作用域插槽 -->
+  <slot name="a" :slot_data="slot_data">{{ a.test_a }}</slot>
+  <button @click="test">按钮</button>
+</template>
+
+<script>
+import { ref } from "vue";
+
+export default {
+  name: "Demo",
+  // 可以直接这样接收props 中的值
+  props: ["msg"],
+  // 可以直接这样接收context 中的值
+  emit: ["showMsg"],
+  // 可以直接这样接收context 中的值
+  slots: ["a", "b"],
+  setup(props, context) {
+    console.log("Demo:", props, context);
+    const { attrs, emit, slots } = context;
+
+    // 定义子组件数据
+    const name = ref("张三");
+    // 定义子组件插槽数据
+    const slot_data = { wether: "威风" };
+
+    // 子组件按钮点击事件，触发父组件事件
+    function test() {
+      console.log("Demo test");
+      emit("showMsg", name.value);
+    }
+
+    return {
+      name,
+      slot_data,
+      test,
+    };
+  },
+};
+</script>
+```
+
+### 7.计算属性与监视
+
+#### 1.computed 函数
 
 - 与 Vue2.x 中 computed 配置功能一致
 
 - 写法
 
   ```js
-  import {computed} from 'vue'
-
-  setup(){
-      ...
-  	//计算属性——简写
-      let fullName = computed(()=>{
-          return person.firstName + '-' + person.lastName
-      })
-      //计算属性——完整
-      let fullName = computed({
-          get(){
-              return person.firstName + '-' + person.lastName
-          },
-          set(value){
-              const nameArr = value.split('-')
-              person.firstName = nameArr[0]
-              person.lastName = nameArr[1]
-          }
-      })
-  }
+  <template>
+  <h1>个人信息：</h1>
+  姓：<input type="text" v-model="person.firstName" /> <br />
+  名：<input type="text" v-model="person.lastName" /> <br />
+  <span>全名：{{ person.fullName }}</span
+  ><br />
+  更改全名：<input type="text" v-model="person.fullName" />
+  </template>
+  <script>
+  import { computed, reactive } from "vue";
+  export default {
+  name: "Demo",
+  setup() {
+    let person = reactive({
+      firstName: "",
+      lastName: "",
+    });
+    //计算属性——简写（没有考虑计算属性被修改的情况）
+    // person.fullName = computed(() => {
+    //   return person.firstName + "-" + person.lastName;
+    // });
+    //计算属性——完整写法（考虑读和写）
+    person.fullName = computed({
+      get() {
+        return person.firstName + "-" + person.lastName;
+      },
+      set(value) {
+        let name = value.split("-");
+        person.firstName = name[0];
+        person.lastName = name[1];
+        console.log("value", value);
+      },
+    });
+    //返回一个对象（常用）
+    return { person };
+  },
+  };
+  </script>
   ```
 
-### 2.watch 函数
+#### 2.watch 函数
 
 - 与 Vue2.x 中 watch 配置功能一致
 
@@ -517,62 +631,114 @@ function changeInfo() {
   - 监视 reactive 定义的响应式数据时：oldValue 无法正确获取、强制开启了深度监视（deep 配置失效）。
   - 监视 reactive 定义的响应式数据中某个属性时：deep 配置有效。
 
-  ```js
-  //情况一：监视ref定义的响应式数据
-  watch(
-    sum,
-    (newValue, oldValue) => {
-      console.log("sum变化了", newValue, oldValue);
-    },
-    { immediate: true }
-  );
+  ```html
+  <template>
+    <h1>求和值为：{{ count }}</h1>
+    <button @click="count++">点我+1</button>
+    <hr />
+    <h1>当前信息为：{{ message }}</h1>
+    <button @click="message += '!'">点击修改信息</button>
+    <hr />
+    <h1>姓名：{{ person.name }}</h1>
+    <h1>年龄：{{ person.age }}</h1>
+    <h1>资产：{{ person.home.num.price }}</h1>
+    <button @click="person.name += '~'">修改姓名</button>
+    <button @click="person.age += 1">修改年龄</button>
+    <button @click="person.home.num.price += 1">修改资产</button>
+  </template>
+  <script>
+    import { reactive, ref, watch } from "vue";
+    export default {
+      name: "Demo",
+      setup() {
+        let count = ref(0);
+        let message = ref("hello");
+        let person = reactive({
+          name: "张三",
+          age: 16,
+          home: {
+            num: {
+              price: 25,
+            },
+          },
+        });
+        console.log(person);
+        // reactive时：Proxy {name: '张三', age: 16, home: {…}}
+        // ref时: RefImpl {__v_isShallow: false, dep: undefined, __v_isRef: true, _rawValue: {…}, _value: Proxy}
 
-  //情况二：监视多个ref定义的响应式数据
-  watch([sum, msg], (newValue, oldValue) => {
-    console.log("sum或msg变化了", newValue, oldValue);
-  });
+        //情况一：监视ref所定义的一个响应式数据
+        /* watch(
+      count,
+      (newValue, oldValue) => {
+        console.log("count改变了:", newValue, oldValue); //count改变了: 0 undefined
+      },
+      { immediate: true }
+    ); */
 
-  /* 情况三：监视reactive定义的响应式数据
-  			若watch监视的是reactive定义的响应式数据，则无法正确获得oldValue！！
-  			若watch监视的是reactive定义的响应式数据，则强制开启了深度监视 
-  */
-  watch(
-    person,
-    (newValue, oldValue) => {
-      console.log("person变化了", newValue, oldValue);
-    },
-    { immediate: true, deep: false }
-  ); //此处的deep配置不再奏效
+        //情况二：监视ref所定义的多个响应式数据
+        /* watch(
+      [count, message],
+      (newValue, oldValue) => {
+        console.log("count或者 message改变了:", newValue, oldValue);
+        //count或者 message改变了: [0, 'hello'] []
+      },
+      { immediate: true }
+    ); */
 
-  //情况四：监视reactive定义的响应式数据中的某个属性
-  watch(
-    () => person.job,
-    (newValue, oldValue) => {
-      console.log("person的job变化了", newValue, oldValue);
-    },
-    { immediate: true, deep: true }
-  );
+        /*
+      情况三：监视reactive所定义的一个响应式数据的全部属性
+          1.注意：此处无法正确的获取oldValue
+          2.注意：强制开启了深度监视（deep配置无效）
+    */
+        /* watch(
+      person,
+      (newValue, oldValue) => {
+        console.log("person改变了", newValue, oldValue);
+        //person改变了 Proxy {name: '张三~', age: 16, home: {…}} Proxy {name: '张三~', age: 16, home: {…}}
+      },
+      { deep: false }
+    ); //此处的deep配置无效，deep为false 修改里面的值会调用 */
 
-  //情况五：监视reactive定义的响应式数据中的某些属性
-  watch(
-    [() => person.job, () => person.name],
-    (newValue, oldValue) => {
-      console.log("person的job变化了", newValue, oldValue);
-    },
-    { immediate: true, deep: true }
-  );
+        //情况四：监视reactive所定义的一个响应式数据中的某个属性
+        /*  watch(
+      () => person.name,
+      (newValue, oldValue) => [console.log("person改变了", newValue, oldValue)] //person改变了 张三~ 张三
+    ); */
 
-  //特殊情况
-  watch(
-    () => person.job,
-    (newValue, oldValue) => {
-      console.log("person的job变化了", newValue, oldValue);
-    },
-    { deep: true }
-  ); //此处由于监视的是reactive素定义的对象中的某个属性，所以deep配置有效
+        //情况五：监视reactive所定义的一个响应式数据中的某些属性
+        /* watch([() => person.name, () => person.age], (newValue, oldValue) => {
+      console.log("person改变了", newValue, oldValue); //person改变了 (2) ['张三', 17] (2) ['张三', 16]
+    }); */
+
+        /* 特殊情况：
+        监听的是对象中的基本属性oldValue 可以捕获到，
+        监听的是对象中的对象配置{ deep: true }其中任意属性变化watch 函数调用，{deep: false}任意属性变化函数不调用
+    */
+        /*  watch(
+      () => person.home.num.price,
+      (newValue, oldValue) => {
+        console.log("person改变了", newValue, oldValue); //person改变了 26 25
+      }
+    ); */
+        watch(
+          () => person.home,
+          (newValue, oldValue) => {
+            console.log("person改变了", newValue, oldValue);
+          },
+          { deep: true } //此处由于监视的是reactive素定义的对象中的某个属性，所以deep配置有效
+        );
+
+        return {
+          count,
+          message,
+          person,
+        };
+      },
+    };
+  </script>
   ```
 
-### 3.watchEffect 函数
+#### 3.watchEffect 函数
 
 - watch 的套路是：既要指明监视的属性，也要指明监视的回调。
 
@@ -583,16 +749,63 @@ function changeInfo() {
   - 但 computed 注重的计算出来的值（回调函数的返回值），所以必须要写返回值。
   - 而 watchEffect 更注重的是过程（回调函数的函数体），所以不用写返回值。
 
-  ```js
-  //watchEffect所指定的回调中用到的数据只要发生变化，则直接重新执行回调。
-  watchEffect(() => {
-    const x1 = sum.value;
-    const x2 = person.age;
-    console.log("watchEffect配置的回调执行了");
-  });
+  ```html
+  <template>
+    <h1>求和值为：{{ count }}</h1>
+    <button @click="count++">点我+1</button>
+    <hr />
+    <h1>当前信息为：{{ message }}</h1>
+    <button @click="message += '!'">点击修改信息</button>
+    <hr />
+    <h1>姓名：{{ person.name }}</h1>
+    <h1>年龄：{{ person.age }}</h1>
+    <h1>资产：{{ person.home.num.price }}</h1>
+    <button @click="person.name += '~'">修改姓名</button>
+    <button @click="person.age += 1">修改年龄</button>
+    <button @click="person.home.num.price += 1">修改资产</button>
+  </template>
+  <script>
+    import { reactive, ref, watch, watchEffect } from "vue";
+    export default {
+      name: "Demo",
+      setup() {
+        let count = ref(0);
+        let message = ref("hello");
+        let person = reactive({
+          name: "张三",
+          age: 16,
+          home: {
+            num: {
+              price: 25,
+            },
+          },
+        });
+        /* watch(
+      count,
+      (newValue, oldValue) => {
+        console.log("count改变了:", newValue, oldValue); //count改变了: 0 undefined
+      },
+      { immediate: true }
+    ); */
+
+        //watchEffect所指定的回调中用到的数据只要发生变化，则直接重新执行回调。初始化时默认会执行一遍
+        watchEffect(() => {
+          const x1 = person.name;
+          const x2 = count.value;
+          console.log("watchEffect所指定的回调执行了", x1, x2); // 初始化后打印：watchEffect所指定的回调执行了 张三 0
+        });
+
+        return {
+          count,
+          message,
+          person,
+        };
+      },
+    };
+  </script>
   ```
 
-## 8.生命周期
+### 8.生命周期
 
 <div style="border:1px solid black;width:380px;float:left;margin-right:20px;"><strong>vue2.x的生命周期</strong><img src="https://cn.vuejs.org/images/lifecycle.png" alt="lifecycle_2" style="zoom:33%;width:1200px" /></div><div style="border:1px solid black;width:510px;height:985px;float:left"><strong>vue3.0的生命周期</strong><img src="https://v3.cn.vuejs.org/images/lifecycle.svg" alt="lifecycle_2" style="zoom:33%;width:2500px" /></div>
 
@@ -611,7 +824,95 @@ function changeInfo() {
   - `beforeUnmount` ==>`onBeforeUnmount`
   - `unmounted` =====>`onUnmounted`
 
-## 9.自定义 hook 函数
+App.vue
+
+```vue
+<template>
+  <button @click="isShowDemo = !isShowDemo">点击切换 Demo 的显示和隐藏</button
+  ><Demo v-if="isShowDemo" />
+</template>
+<script>
+import { ref } from "vue";
+import Demo from "./components/Demo.vue";
+export default {
+  name: "App",
+  components: { Demo },
+  setup() {
+    let isShowDemo = ref(true);
+    return { isShowDemo };
+  },
+};
+</script>
+```
+
+Demo.vue
+
+```vue
+<template>
+  <h1>当前和为：{{ count }}</h1>
+  <button @click="count++">点我+1</button>
+</template>
+<script>
+import {
+  onUnmounted,
+  onUpdated,
+  onBeforeUpdate,
+  onBeforeMount,
+  onMounted,
+  ref,
+  onBeforeUnmount,
+} from "vue";
+export default {
+  name: "Demo",
+  //通过组合式API的形式去使用生命周期钩子
+  setup() {
+    console.log("setup");
+    let count = ref(0);
+    onBeforeMount(() => {
+      console.log("onBeforeMount");
+    });
+    onMounted(() => {
+      console.log("onMounted");
+    });
+    onBeforeUpdate(() => {
+      console.log("onbeforeUpdate");
+    });
+    onUpdated(() => {
+      console.log("onUpdated");
+    });
+    onBeforeUnmount(() => {
+      console.log("onBeforeUnmount");
+    });
+    onUnmounted(() => {
+      console.log("onUnmounted");
+    });
+    return { count };
+  },
+
+  //通过配置项的形式使用生命周期钩子
+  beforeCreate() {
+    console.log("beforeCreate");
+  },
+  created() {
+    console.log("created");
+  },
+  beforeMount() {
+    console.log("beforeMount");
+  },
+  mounted() {
+    console.log("mounted");
+  },
+  beforeUpdate() {
+    console.log("beforeUpdate");
+  },
+  updated() {
+    console.log("updated");
+  },
+};
+</script>
+```
+
+### 9.自定义 hook 函数
 
 - 什么是 hook？—— 本质是一个函数，把 setup 函数中使用的 Composition API 进行了封装。
 
@@ -619,10 +920,338 @@ function changeInfo() {
 
 - 自定义 hook 的优势: 复用代码, 让 setup 中的逻辑更清楚易懂。
 
-## 10.toRef
+hooks/usePoint.js
+
+```js
+import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
+export default function () {
+  const x = ref(0);
+  const y = ref(0);
+  // const point = reactive({
+  //   x: 0,
+  //   y: 0,
+  // });
+  function savePoint(e) {
+    // point.x = e.pageX;
+    // point.y = e.pageY;
+    // console.log("e", point.x, point.y);
+    x.value = e.pageX;
+    y.value = e.pageY;
+  }
+
+  onMounted(() => {
+    window.addEventListener("click", savePoint);
+  });
+  onBeforeUnmount(() => {
+    window.removeEventListener("click", savePoint);
+  });
+
+  // return point;
+  return { x, y };
+}
+```
+
+Demo.vue
+
+```html
+<template>
+  <h1>当前鼠标的坐标为：x:{{ point.x }} y:{{ point.y }}</h1>
+</template>
+<script>
+  import usePoint from "../hooks/usePoint";
+  export default {
+    name: "Demo",
+    setup() {
+      const point = usePoint();
+      return { point };
+    },
+  };
+</script>
+```
+
+### 10.toRef
 
 - 作用：创建一个 ref 对象，其 value 值指向另一个对象中的某个属性。
 - 语法：`const name = toRef(person,'name')`
 - 应用: 要将响应式对象中的某个属性单独提供给外部使用时。
 
 - 扩展：`toRefs` 与`toRef`功能一致，但可以批量创建多个 ref 对象，语法：`toRefs(person)`
+
+```html
+<template>
+  <h1>{{ person }}</h1>
+  <h1>姓名：{{ person.name }} - {{ name }} - {{ x }} - {{ y }}</h1>
+  <h1>年龄：{{ person.age }} - {{ age }}</h1>
+  <h1>资产：{{ person.home.num.price }} - {{ home.num.price }}</h1>
+  <button @click="person.name += '~'">修改姓名</button>
+  <button @click="person.age += 1">修改年龄</button>
+  <button @click="person.home.num.price++">修改资产</button>
+</template>
+
+<script>
+  import { reactive, toRef, toRefs } from "vue";
+  export default {
+    name: "Demo",
+    setup() {
+      const person = reactive({
+        name: "张安",
+        age: 23,
+        home: {
+          num: {
+            price: 12,
+          },
+        },
+      });
+      // 此处 x 不是响应式的，y 是响应式的
+      // toRef 相当于把对象中的属性结构出来使用，toRefs 是批量结构对象属性
+      let x = person.name;
+      let y = toRef(person, "name");
+      console.log("x,y", x, y); //x,y 张安 ObjectRefImpl {_object: '张安', _key: undefined, _defaultValue: undefined, __v_isRef: true}
+
+      return { person, x, y, ...toRefs(person) };
+    },
+  };
+</script>
+```
+
+## 三、其它 Composition API
+
+### 1.shallowReactive 与 shallowRef、triggerRef
+
+- shallowReactive：只处理对象最外层属性的响应式（浅响应式）。
+- shallowRef：只处理基本数据类型的响应式, 不进行对象的响应式处理。
+- triggerRef 可以直接去更改 shallowRef 创建数据的某一层
+  vue3 中值提供了 triggerRef 这个方法，但是并没有提供 triggerReactive 的方法。也就是说 triggerRef 【不可以】去更改 shallowReactive 创建的数据
+
+- 什么时候使用?
+  - 如果有一个对象数据，结构比较深, 但变化时只是外层属性变化 ===> shallowReactive。
+  - 如果有一个对象数据，后续功能不会修改该对象中的属性，而是生新的对象来替换 ===> shallowRef。
+
+```html
+<template>
+  <div>{{ state }}</div>
+  <button @click="func1">修改</button>
+  <hr />
+  <div>{{ st }}</div>
+  <button @click="func2">修改</button>
+  <hr />
+  person: {{ person }}
+  <h1>姓名：{{ name }}</h1>
+  <h1>年龄：{{ age }}</h1>
+  <h1>资产：{{ home.num.price }}</h1>
+  <button @click="name += '~'">修改姓名</button>
+  <button @click="age++">修改年龄</button>
+  <button @click="home.num.price++">修改资产</button>
+  <hr />
+  <h1>x: {{ x.y }}</h1>
+  <button @click="x.y++">修改 y 的值</button>
+  <button @click="x = { y: 88 }">重置 y 的值</button>
+</template>
+
+<script>
+  import { trigger, triggerRef } from "@vue/reactivity";
+  import { shallowRef, shallowReactive, toRefs, reactive } from "vue";
+  export default {
+    name: "Demo",
+    setup() {
+      //只考虑第一层数据的响应式，name 和 age 为响应式，price 不响应
+      const person = shallowReactive({
+        // const person = reactive({
+        name: "张三",
+        age: 20,
+        home: {
+          num: {
+            price: 23,
+          },
+        },
+      });
+
+      const x = shallowRef({
+        y: 1,
+      });
+      console.log("******", x);
+
+      //默认情况它只能够监听数据的第一层。如果想更改多层的数据，你必须先更改第一层的数据。然后在去更改其他层的数据。这样视图上的数据才会发生变化
+      let state = shallowReactive({
+        a: "a",
+        b: {
+          b1: "b1",
+          c: {
+            c1: "c1",
+            d1: {
+              e1: "e1",
+              f1: {
+                f1: "f1",
+              },
+            },
+          },
+        },
+      });
+      function func1() {
+        console.log(state); //只有第一层
+        console.log(state.b.b1);
+        console.log(state.b.c);
+        console.log(state.b.c.d1);
+        console.log(state.b.c.d1.f1);
+        //  直接更改其他层的数据，会失败的哈
+        // state.b.c.d1.f1.f1 = "f1f1f1f1";
+
+        // 先更改第一层，然后在更改其他层就会成功
+        // state.a = "啊啊啊";
+        // state.b.c.d1.f1.f1 = "f1f1f1f1";
+      }
+
+      // 如果是通过 shallowRef 创建的数据。那么 Vue 监听的是.value 变化。并不是第一层的数据的变化。因此如果要更改 shallowRef 创建的数据。应该 xxx.value={}
+      let st = shallowRef({
+        a: "a",
+        b: {
+          b1: "b1",
+          c: {
+            c1: "c1",
+            d1: {
+              e1: "e1",
+              f1: {
+                f1: "f1",
+              },
+            },
+          },
+        },
+      });
+      function func2() {
+        // 1. 通过 state.value的方式直接去更改
+        st.value = {
+          a: "我是a",
+          b: {
+            b1: "我是b1",
+            c: {
+              c1: "我是c1",
+              d1: {
+                e1: "我是e1",
+                f1: {
+                  f1: "f1",
+                },
+              },
+            },
+          },
+        };
+        // 2. 通过triggerRef 直接更改你需要修改某一层的数据使用下面的语句会生效，只能用于 shallowRef，不能用于 shallowReactive
+        // st.value.b.c.d1.e1 = "e1e1e1e1";
+        // triggerRef(st);
+      }
+
+      return {
+        person,
+        x,
+        state,
+        func1,
+        st,
+        func2,
+        ...toRefs(person),
+      };
+    },
+  };
+</script>
+```
+
+## 2.readonly 与 shallowReadonly
+
+- readonly: 让一个响应式数据变为只读的（深只读）。
+- shallowReadonly：让一个响应式数据变为只读的（浅只读）。
+- 应用场景: 不希望数据被修改时。
+
+## 3.toRaw 与 markRaw
+
+- toRaw：
+  - 作用：将一个由`reactive`生成的<strong style="color:orange">响应式对象</strong>转为<strong style="color:orange">普通对象</strong>。
+  - 使用场景：用于读取响应式对象对应的普通对象，对这个普通对象的所有操作，不会引起页面更新。
+- markRaw：
+  - 作用：标记一个对象，使其永远不会再成为响应式对象。
+  - 应用场景:
+    1. 有些值不应被设置为响应式的，例如复杂的第三方类库等。
+    2. 当渲染具有不可变数据源的大列表时，跳过响应式转换可以提高性能。
+
+## 4.customRef
+
+- 作用：创建一个自定义的 ref，并对其依赖项跟踪和更新触发进行显式控制。
+
+- 实现防抖效果：
+
+  ```vue
+  <template>
+    <input type="text" v-model="keyword" />
+    <h3>{{ keyword }}</h3>
+  </template>
+
+  <script>
+  import { ref, customRef } from "vue";
+  export default {
+    name: "Demo",
+    setup() {
+      // let keyword = ref('hello') //使用Vue准备好的内置ref
+      //自定义一个myRef
+      function myRef(value, delay) {
+        let timer;
+        //通过customRef去实现自定义
+        return customRef((track, trigger) => {
+          return {
+            get() {
+              track(); //告诉Vue这个value值是需要被“追踪”的
+              return value;
+            },
+            set(newValue) {
+              clearTimeout(timer);
+              timer = setTimeout(() => {
+                value = newValue;
+                trigger(); //告诉Vue去更新界面
+              }, delay);
+            },
+          };
+        });
+      }
+      let keyword = myRef("hello", 500); //使用程序员自定义的ref
+      return {
+        keyword,
+      };
+    },
+  };
+  </script>
+  ```
+
+## 5.provide 与 inject
+
+<img src="https://v3.cn.vuejs.org/images/components_provide.png" style="width:300px" />
+
+- 作用：实现<strong style="color:#DD5145">祖与后代组件间</strong>通信
+
+- 套路：父组件有一个 `provide` 选项来提供数据，后代组件有一个 `inject` 选项来开始使用这些数据
+
+- 具体写法：
+
+  1. 祖组件中：
+
+     ```js
+     setup(){
+     	......
+         let car = reactive({name:'奔驰',price:'40万'})
+         provide('car',car)
+         ......
+     }
+     ```
+
+  2. 后代组件中：
+
+     ```js
+     setup(props,context){
+     	......
+         const car = inject('car')
+         return {car}
+     	......
+     }
+     ```
+
+## 6.响应式数据的判断
+
+- isRef: 检查一个值是否为一个 ref 对象
+- isReactive: 检查一个对象是否是由 `reactive` 创建的响应式代理
+- isReadonly: 检查一个对象是否是由 `readonly` 创建的只读代理
+- isProxy: 检查一个对象是否是由 `reactive` 或者 `readonly` 方法创建的代理
