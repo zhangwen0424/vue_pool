@@ -4,9 +4,9 @@
 
 分类导航
 
-- [ Vue 基础](https://github.com/zhangwen0424/vue_pool/tree/main/1.vue_basic)
-
-- [Vue 脚手架](https://github.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
+- 1.vue_basic [ Vue 基础](https://github.com/zhangwen0424/vue_pool/tree/main/1.vue_basic)
+- 2.vue_test [Vue 脚手架](https://github.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
+- 3.vue3_vite [Vue3](https://github.com/zhangwen0424/vue_pool/tree/main/3.vue3_vite)
 
 本文目录
 
