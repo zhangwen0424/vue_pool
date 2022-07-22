@@ -805,6 +805,80 @@ export default {
   </script>
   ```
 
+#### 4.watch 和 watchEffec 的区别
+
+1、watch 需要明确监听哪个属性
+2、watchEffect 会根据其中的属性，自动监听其变化
+3、watcheffect 初始化时，一定会执行一次（收集要监听的数据，不然不知道监听的是什么），watch 只有你设置了初始化监听才会监听
+
+```js
+const numberRef = ref(100);
+const state = reactive({
+  name: "test",
+  age: 20,
+});
+
+// watch
+watch(
+  numberRef,
+  (newNumber, oldNumber) => {
+    console.log("ref watch", newNumber, oldNumber);
+  },
+  {
+    immediate: true, // 初始化之前就监听，可选
+  }
+);
+
+setTimeout(() => {
+  numberRef.value = 200;
+}, 1500);
+
+watch(
+  // 第一个参数，确定要监听哪个属性
+  () => state.age,
+
+  // 第二个参数，回调函数
+  (newAge, oldAge) => {
+    console.log("state watch", newAge, oldAge);
+  },
+
+  // 第三个参数，配置项
+  {
+    immediate: true, // 初始化之前就监听，可选
+    // deep: true // 深度监听
+  }
+);
+
+setTimeout(() => {
+  state.age = 25;
+}, 1500);
+setTimeout(() => {
+  state.name = "testA";
+}, 3000);
+// watcheffect
+watchEffect(() => {
+  // 初始化时，一定会执行一次（收集要监听的数据）
+  console.log("hello watchEffect");
+});
+watchEffect(() => {
+  // 监听的是state.name 不会监听state.age
+  console.log("state.name", state.name);
+});
+watchEffect(() => {
+  console.log("state.age", state.age);
+});
+watchEffect(() => {
+  console.log("state.age", state.age);
+  console.log("state.name", state.name);
+});
+setTimeout(() => {
+  state.age = 25;
+}, 1500);
+setTimeout(() => {
+  state.name = "test1";
+}, 3000);
+```
+
 ### 8.生命周期
 
 <div style="border:1px solid black;width:380px;float:left;margin-right:20px;"><strong>vue2.x的生命周期</strong><img src="https://cn.vuejs.org/images/lifecycle.png" alt="lifecycle_2" style="zoom:33%;width:1200px" /></div><div style="border:1px solid black;width:510px;height:985px;float:left"><strong>vue3.0的生命周期</strong><img src="https://v3.cn.vuejs.org/images/lifecycle.svg" alt="lifecycle_2" style="zoom:33%;width:2500px" /></div>
@@ -969,7 +1043,7 @@ Demo.vue
 </script>
 ```
 
-### 10.toRef
+### 10.toRef 和 toRefs
 
 - 作用：创建一个 ref 对象，其 value 值指向另一个对象中的某个属性。
 - 语法：`const name = toRef(person,'name')`
@@ -1153,71 +1227,189 @@ Demo.vue
 </script>
 ```
 
-## 2.readonly 与 shallowReadonly
+### 2.readonly 与 shallowReadonly
 
 - readonly: 让一个响应式数据变为只读的（深只读）。
 - shallowReadonly：让一个响应式数据变为只读的（浅只读）。
 - 应用场景: 不希望数据被修改时。
 
-## 3.toRaw 与 markRaw
+```vue
+<template>
+  <h1>求和：{{ count }}</h1>
+  <button @click="count++">点我+1</button>
+  <hr />
+  <h1>姓名：{{ name }}</h1>
+  <h1>年龄：{{ age }}</h1>
+  <h1>资产：{{ home.num.price }}</h1>
+  <button @click="name += '!'">修改姓名</button>
+  <button @click="age++">修改年龄</button>
+  <button @click="home.num.price++">修改资产</button>
+</template>
+<script>
+import { ref, reactive, toRefs, readonly, shallowReadonly } from "vue";
+export default {
+  name: "Demo",
+  setup() {
+    let count = ref(0);
+    let person = reactive({
+      name: "张三",
+      age: 22,
+      home: {
+        num: {
+          price: 22,
+        },
+      },
+    });
+    person = readonly(person); //全部属性不可改
+    // person = shallowReadonly(person);//home中的属性可以修改
+    // count = readonly(count);
+    // count = shallowReadonly(count);
+
+    return {
+      count,
+      ...toRefs(person),
+    };
+  },
+};
+</script>
+```
+
+### 3.toRaw 与 markRaw
 
 - toRaw：
   - 作用：将一个由`reactive`生成的<strong style="color:orange">响应式对象</strong>转为<strong style="color:orange">普通对象</strong>。
   - 使用场景：用于读取响应式对象对应的普通对象，对这个普通对象的所有操作，不会引起页面更新。
 - markRaw：
+
   - 作用：标记一个对象，使其永远不会再成为响应式对象。
   - 应用场景:
+
     1. 有些值不应被设置为响应式的，例如复杂的第三方类库等。
     2. 当渲染具有不可变数据源的大列表时，跳过响应式转换可以提高性能。
 
-## 4.customRef
+    markRaw 与 toRaw 的区别:
+
+- toRaw 和 markRaw 区别
+
+  - toRaw 是让响应式对象变成普通对象。 只能是复杂数据类型 对象与数组都可以。
+    这里的让响应式对象变成普通对象说的并不够准确, toRaw 是把响应式对象复制一份数据，让这个数据变成普通对象, 就是不改变原对象, 返回值就是普通对象。
+  - markRaw 是让对象永远不称为响应式对象。 同样不改变原对象, 但是可以将响应式对象变成普通对象后,在把整个对象赋值给响应式对象。 但是这样不太好，就像绕了一圈一样。
+
+  区别就是 markRaw 让对象永远不称为响应式对象 toRaw 让响应式对象变成普通对象。
+
+```vue
+<template>
+  <h1>姓名：{{ name }}</h1>
+  <h1>年龄：{{ age }}</h1>
+  <h1>薪资：{{ job.j1.salary }}k</h1>
+  <h1 v-show="person.car">座架信息：{{ person.car }}</h1>
+  <button @click="name += '~'">改名字</button>
+  <button @click="age++">改年龄</button>
+  <button @click="job.j1.salary++">涨薪</button>
+  <button @click="showRowPerson">输出原始 person</button>
+  <button @click="addCar">添加一辆车</button>
+  <div v-show="person.car">
+    <button @click="person.car.type += '!'">换车名</button>
+    <button @click="changePrice">换价格</button>
+  </div>
+</template>
+<script>
+import { reactive, toRefs, toRaw, markRaw } from "vue";
+
+export default {
+  name: "Demo",
+  setup(props) {
+    let person = reactive({
+      name: "张三",
+      age: 22,
+      job: {
+        j1: {
+          salary: 23,
+        },
+      },
+    });
+    // 打印 person 信息
+    function showRowPerson() {
+      const p = toRaw(person);
+      p.age++; //这里数据被修改了，但是页面不是响应式的了
+      console.log(p);
+    }
+    // 添加一辆车
+    function addCar() {
+      let car = { type: "奔驰", price: 24 };
+      person.car = markRaw(car); //这里需要在 return 中把 person 暴露出去，因为person属性里面没有 car 属性
+    }
+    // 更改价格
+    function changePrice() {
+      person.car.price++;
+      console.log(person.car.price); // 这里数据被修改了，但是页面不是响应式的了
+    }
+
+    return {
+      ...toRefs(person),
+      person,
+      showRowPerson,
+      addCar,
+      changePrice,
+    };
+  },
+};
+</script>
+```
+
+- markRaw 与 readonly 的区别.
+  - 从结果上来看就是页面的数据都不会改变, 其本质上来看。
+  - markRaw 没有做响应式操作页面不会作出数据更新，可以对值本身进行修改。
+  - readonly 对禁止对值得修改，响应式本身还存在。
+  - markRaw 可以对性能进行提升
+
+### 4.customRef
 
 - 作用：创建一个自定义的 ref，并对其依赖项跟踪和更新触发进行显式控制。
 
 - 实现防抖效果：
 
-  ```vue
-  <template>
-    <input type="text" v-model="keyword" />
-    <h3>{{ keyword }}</h3>
-  </template>
+```vue
+<template>
+  <input type="text" v-model="keyWord" />
+  <h1>{{ keyWord }}</h1>
+</template>
 
-  <script>
-  import { ref, customRef } from "vue";
-  export default {
-    name: "Demo",
-    setup() {
-      // let keyword = ref('hello') //使用Vue准备好的内置ref
-      //自定义一个myRef
-      function myRef(value, delay) {
-        let timer;
-        //通过customRef去实现自定义
-        return customRef((track, trigger) => {
-          return {
-            get() {
-              track(); //告诉Vue这个value值是需要被“追踪”的
-              return value;
-            },
-            set(newValue) {
-              clearTimeout(timer);
-              timer = setTimeout(() => {
-                value = newValue;
-                trigger(); //告诉Vue去更新界面
-              }, delay);
-            },
-          };
-        });
-      }
-      let keyword = myRef("hello", 500); //使用程序员自定义的ref
-      return {
-        keyword,
-      };
-    },
-  };
-  </script>
-  ```
+<script>
+import { ref, customRef } from "vue";
+export default {
+  name: "Demo",
+  setup(props) {
+    //自定义一个ref——名为：myRef
+    function myRef(value, delay) {
+      let timer = null;
+      return customRef((track, trigger) => {
+        return {
+          get() {
+            console.log(`--读: ${value}`);
+            track(); //通知Vue追踪value的变化（提前和get商量一下，让他认为这个value是有用的）
+            return value;
+          },
+          set(newValue) {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              console.log(`~~写: ${newValue}`);
+              value = newValue;
+              trigger(); //通知Vue去重新解析模板
+            }, delay);
+          },
+        };
+      });
+    }
+    // let keyWord = ref("hello"); //使用Vue提供的ref
+    let keyWord = myRef("hello", 500);
+    return { keyWord };
+  },
+};
+</script>
+```
 
-## 5.provide 与 inject
+### 5.provide 与 inject
 
 <img src="https://v3.cn.vuejs.org/images/components_provide.png" style="width:300px" />
 
@@ -1227,27 +1419,29 @@ Demo.vue
 
 - 具体写法：
 
-  1. 祖组件中：
+1. 祖组件中：
 
-     ```js
-     setup(){
-     	......
-         let car = reactive({name:'奔驰',price:'40万'})
-         provide('car',car)
-         ......
-     }
-     ```
+   ```js
+   setup(){
+   	......
+       let car = reactive({name:'奔驰',price:'40万'})
+       provide('car',car)
+       ......
+   }
+   ```
 
-  2. 后代组件中：
+````
 
-     ```js
-     setup(props,context){
-     	......
-         const car = inject('car')
-         return {car}
-     	......
-     }
-     ```
+2. 后代组件中：
+
+   ```js
+   setup(props,context){
+   	......
+       const car = inject('car')
+       return {car}
+   	......
+   }
+   ```
 
 ## 6.响应式数据的判断
 
@@ -1255,3 +1449,8 @@ Demo.vue
 - isReactive: 检查一个对象是否是由 `reactive` 创建的响应式代理
 - isReadonly: 检查一个对象是否是由 `readonly` 创建的只读代理
 - isProxy: 检查一个对象是否是由 `reactive` 或者 `readonly` 方法创建的代理
+
+```
+
+```
+````

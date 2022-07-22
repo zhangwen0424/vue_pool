@@ -1,6 +1,9 @@
 <template>hello</template>
 <script>
 export default {
-  name: "Demo",
+  name: "Son",
+  setup(props) {
+    return {};
+  },
 };
 </script>
