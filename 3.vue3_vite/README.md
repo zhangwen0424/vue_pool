@@ -1423,34 +1423,313 @@ export default {
 
    ```js
    setup(){
-   	......
        let car = reactive({name:'奔驰',price:'40万'})
        provide('car',car)
-       ......
    }
    ```
-
-````
 
 2. 后代组件中：
 
    ```js
    setup(props,context){
-   	......
        const car = inject('car')
        return {car}
-   	......
    }
    ```
 
-## 6.响应式数据的判断
+### 6.响应式数据的判断
 
 - isRef: 检查一个值是否为一个 ref 对象
 - isReactive: 检查一个对象是否是由 `reactive` 创建的响应式代理
 - isReadonly: 检查一个对象是否是由 `readonly` 创建的只读代理
 - isProxy: 检查一个对象是否是由 `reactive` 或者 `readonly` 方法创建的代理
 
+```vue
+<template>hello</template>
+<script>
+import {
+  isProxy,
+  isReactive,
+  isReadonly,
+  isRef,
+  reactive,
+  readonly,
+  ref,
+} from "@vue/reactivity";
+export default {
+  name: "App",
+  setup() {
+    let data = reactive({ name: "张三", age: 22 });
+    let a = ref(0);
+    let c = readonly(data);
+    console.log(isRef(a)); //true
+    console.log(isReactive(data)); //true
+    console.log(isReadonly(c)); //true
+    console.log(isProxy(a)); //false
+    console.log(isProxy(c)); //true
+    console.log(isProxy(data)); //true
+  },
+};
+</script>
 ```
 
+## 四、Composition API 的优势
+
+### 1.Options API 存在的问题
+
+使用传统 OptionsAPI 中，新增或者修改一个需求，就需要分别在 data，methods，computed 里修改 。
+
+<div style="width:600px;height:370px;overflow:hidden;float:left">
+    <img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/f84e4e2c02424d9a99862ade0a2e4114~tplv-k3u1fbpfcp-watermark.image" style="width:600px;float:left" />
+</div>
+<div style="width:300px;height:370px;overflow:hidden;float:left">
+    <img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e5ac7e20d1784887a826f6360768a368~tplv-k3u1fbpfcp-watermark.image" style="zoom:50%;width:560px;left" /> 
+</div>
+
+### 2.Composition API 的优势
+
+我们可以更加优雅的组织我们的代码，函数。让相关功能的代码更加有序的组织在一起。
+
+<div style="width:500px;height:340px;overflow:hidden;float:left">
+    <img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bc0be8211fc54b6c941c036791ba4efe~tplv-k3u1fbpfcp-watermark.image"style="height:360px"/>
+</div>
+<div style="width:430px;height:340px;overflow:hidden;float:left">
+    <img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6cc55165c0e34069a75fe36f8712eb80~tplv-k3u1fbpfcp-watermark.image"style="height:360px"/>
+</div>
+
+## 五、新的组件
+
+### 1.Fragment
+
+- 在 Vue2 中: 组件必须有一个根标签
+- 在 Vue3 中: 组件可以没有根标签, 内部会将多个标签包含在一个 Fragment 虚拟元素中
+- 好处: 减少标签层级, 减小内存占用
+
+### 2.Teleport
+
+- 什么是 Teleport？—— `Teleport` 是一种能够将我们的<strong style="color:#DD5145">组件 html 结构</strong>移动到指定位置的技术。
+
+```vue
+<template>
+  <button @click="show = true">点我弹窗</button>
+  <teleport to="body">
+    <div v-show="show" class="mask">
+      <div class="dialog">
+        <h1>我是一个弹窗</h1>
+        <button @click="show = false">关闭弹窗</button>
+      </div>
+    </div>
+  </teleport>
+</template>
+<script>
+import { ref } from "vue";
+export default {
+  name: "Dialog",
+  setup() {
+    let show = ref(true);
+    return { show };
+  },
+};
+</script>
+<style>
+/* 蒙版 */
+.mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgb(0, 0, 0, 0.5);
+}
+/* 弹窗 */
+.dialog {
+  width: 300px;
+  height: 200px;
+  background-color: rgb(0, 255, 0);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+</style>
 ```
-````
+
+## 3.Suspense
+
+- 等待异步组件时渲染一些额外内容，让应用有更好的用户体验
+
+- 使用步骤：
+
+  - 异步引入组件
+
+App.vue
+
+```vue
+<template>
+  <div class="app">
+    <h1>我是 App组件</h1>
+    <!-- 用suspense包裹异步组件 -->
+    <suspense>
+      <!-- 组件显示正常时加载 -->
+      <template v-slot:default>
+        <Child />
+      </template>
+      <!-- 组件显示缓慢时加载 -->
+      <template v-slot:fallback>
+        <h5>正在加载中...</h5>
+      </template>
+    </suspense>
+  </div>
+</template>
+<script>
+//静态引入
+// import Child from "./components/Child.vue";
+
+//异步引入
+import { defineAsyncComponent } from "vue";
+const Child = defineAsyncComponent(() => import("./components/Child.vue"));
+
+export default {
+  name: "App",
+  components: { Child },
+};
+</script>
+<style>
+.app {
+  background-color: skyblue;
+  padding: 10px;
+}
+</style>
+```
+
+Child.vue
+
+```vue
+<template>
+  <div class="child">
+    <h1>我是 Child组件</h1>
+    {{ sum }}
+  </div>
+</template>
+<script>
+import { ref } from "vue";
+export default {
+  name: "Child",
+  setup() {
+    let sum = ref(0);
+    // return { sum };
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ sum });
+      }, 1000);
+    });
+  },
+};
+</script>
+<style>
+.child {
+  background-color: yellow;
+  padding: 10px;
+}
+</style>
+```
+
+# 六、其他
+
+## 1.全局 API 的转移
+
+- Vue 2.x 有许多全局 API 和配置。
+
+  - 例如：注册全局组件、注册全局指令等。
+
+    ```js
+    //注册全局组件
+    Vue.component('MyButton', {
+      data: () => ({
+        count: 0
+      }),
+      template: '<button @click="count++">Clicked {{ count }} times.</button>'
+    })
+
+    //注册全局指令
+    Vue.directive('focus', {
+      inserted: el => el.focus()
+    }
+    ```
+
+- Vue3.0 中对这些 API 做出了调整：
+
+  - 将全局的 API，即：`Vue.xxx`调整到应用实例（`app`）上
+
+    | 2.x 全局 API（`Vue`）    | 3.x 实例 API (`app`)                        |
+    | ------------------------ | ------------------------------------------- |
+    | Vue.config.xxxx          | app.config.xxxx                             |
+    | Vue.config.productionTip | <strong style="color:#DD5145">移除</strong> |
+    | Vue.component            | app.component                               |
+    | Vue.directive            | app.directive                               |
+    | Vue.mixin                | app.mixin                                   |
+    | Vue.use                  | app.use                                     |
+    | Vue.prototype            | app.config.globalProperties                 |
+
+## 2.其他改变
+
+- data 选项应始终被声明为一个函数。
+
+- 过度类名的更改：
+
+  - Vue2.x 写法
+
+    ```css
+    .v-enter,
+    .v-leave-to {
+      opacity: 0;
+    }
+    .v-leave,
+    .v-enter-to {
+      opacity: 1;
+    }
+    ```
+
+  - Vue3.x 写法
+
+    ```css
+    .v-enter-from,
+    .v-leave-to {
+      opacity: 0;
+    }
+
+    .v-leave-from,
+    .v-enter-to {
+      opacity: 1;
+    }
+    ```
+
+- <strong style="color:#DD5145">移除</strong>keyCode 作为 v-on 的修饰符，同时也不再支持`config.keyCodes`
+
+- <strong style="color:#DD5145">移除</strong>`v-on.native`修饰符
+
+  - 父组件中绑定事件
+
+    ```vue
+    <my-component
+      v-on:close="handleComponentEvent"
+      v-on:click="handleNativeClickEvent"
+    />
+    ```
+
+  - 子组件中声明自定义事件
+
+    ```vue
+    <script>
+    export default {
+      emits: ["close"],
+    };
+    </script>
+    ```
+
+- <strong style="color:#DD5145">移除</strong>过滤器（filter）
+
+  > 过滤器虽然这看起来很方便，但它需要一个自定义语法，打破大括号内表达式是 “只是 JavaScript” 的假设，这不仅有学习成本，而且有实现成本！建议用方法调用或计算属性去替换过滤器。
+
+- ......
