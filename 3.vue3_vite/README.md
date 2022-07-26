@@ -66,19 +66,35 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 ```bash
 ## 查看@vue/cli版本，确保@vue/cli版本在4.5.0以上
 vue --version
+# 或者
+vue -V
+
+# 通过可视化图形管理 vue项目
+vue ui
+
+# 卸载老版本的 vue-cli
+npm uninstall vue-cli -g
+# 或者
+yarn global remove vue-cli
+
 ## 安装或者升级你的@vue/cli
 npm install -g @vue/cli
 ## 通过 yarn 安装
 yarn global add @vue/cli
+
 # 升级 vue/cli版本
 npm update -g @vue/cli
 # 或者
 yarn global upgrade --latest @vue/cli
+
 ## 创建
 vue create vue_test
-## 启动
+
+## 启动 默认：http://localhost:8080/
 cd vue_test
 npm run serve
+# 手动指定端口号启动
+npm run serve -- --port 9000
 ```
 
 ### 2.使用 vite 创建

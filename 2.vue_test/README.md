@@ -288,7 +288,7 @@ Student.vue
 
 ## mixin(混入)
 
-1. 功能：可以把多个组件共用的配置提取成一个混入对象
+1. 功能：可以把多个组件共用的配置提取成一个混入对象，优势提高代码的复用性。
 2. 使用方式：
    - 第一步定义混合：
      ```
@@ -301,6 +301,14 @@ Student.vue
    - 第二步使用混入：  
      ​ 全局混入：`Vue.mixin(xxx)`
      ​ 局部混入：`mixins:['xxx']`
+   - 全局混入会增加排查问题难度
+3. 合并规则：
+   - 不冲突的配置完整合并，冲突的配置以组件中自己配置为准
+   - 如果属性冲突，以组件内部定义为准
+   - 生命周期函数不重名完整混入，重名混入，在函数触发时先触发 Mixin 对象中的实现，再触发组件内部的实现。
+4. 应用场景：
+   - 多个组件共用 prop: ["title"] 时，将 title 提取为公共的
+   - 全局组件适合开发插件，如组件挂着的记录工具
 
 定义混入：mixin.js
 
@@ -369,7 +377,7 @@ export default {
   install(Vue, x, y, z) {
     console.log(x, y, z);
     // 定义全局过滤器
-    Vue.filter("mySlice", function(value) {
+    Vue.filter("mySlice", function (value) {
       return value.slice(0, 3);
     });
     // 定义全局指令
@@ -1752,11 +1760,12 @@ app.listen(5000, (err) => {
                   <h4>我是一些电影</h4>
                 </Category>
             </div>
+
           </template>
 
           <script>
           import Category from "./components/Category.vue";
-
+        
           export default {
             name: "App",
             data() {
@@ -1771,49 +1780,52 @@ app.listen(5000, (err) => {
             },
           };
           </script>
-         ```
 
-4. 作用域插槽：
+        ```
 
-   1. 理解：<span style="color:red">数据在组件的自身，但根据数据生成的结构需要组件的使用者来决定。</span>（games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定）
-   2. 具体编码：
+        ```
 
-      ```vue
-      <!-- 父组件中： -->
-      <Category>
-         <template scope="scopeData">
-           <!-- 生成的是ul列表 -->
-           <ul>
-             <li v-for="g in scopeData.games" :key="g">{{g}}</li>
-           </ul>
-         </template>
-       </Category>
+4.  作用域插槽：
 
-      <Category>
-         <template slot-scope="scopeData">
-           <!-- 生成的是h4标题 -->
-           <h4 v-for="g in scopeData.games" :key="g">{{g}}</h4>
-         </template>
-       </Category>
-      <!-- 子组件中： -->
-      <template>
-        <div>
-          <slot :games="games"></slot>
-        </div>
-      </template>
-      <script>
-      export default {
-        name: "Category",
-        props: ["title"],
-        //数据在子组件自身
-        data() {
-          return {
-            games: ["红色警戒", "穿越火线", "劲舞团", "超级玛丽"],
-          };
-        },
-      };
-      </script>
-      ```
+    1.  理解：<span style="color:red">数据在组件的自身，但根据数据生成的结构需要组件的使用者来决定。</span>（games 数据在 Category 组件中，但使用数据所遍历出来的结构由 App 组件决定）
+    2.  具体编码：
+
+        ```vue
+        <!-- 父组件中： -->
+        <Category>
+           <template scope="scopeData">
+             <!-- 生成的是ul列表 -->
+             <ul>
+               <li v-for="g in scopeData.games" :key="g">{{g}}</li>
+             </ul>
+           </template>
+         </Category>
+
+        <Category>
+           <template slot-scope="scopeData">
+             <!-- 生成的是h4标题 -->
+             <h4 v-for="g in scopeData.games" :key="g">{{g}}</h4>
+           </template>
+         </Category>
+        <!-- 子组件中： -->
+        <template>
+          <div>
+            <slot :games="games"></slot>
+          </div>
+        </template>
+        <script>
+        export default {
+          name: "Category",
+          props: ["title"],
+          //数据在子组件自身
+          data() {
+            return {
+              games: ["红色警戒", "穿越火线", "劲舞团", "超级玛丽"],
+            };
+          },
+        };
+        </script>
+        ```
 
 ```
 
@@ -1826,9 +1838,7 @@ app.listen(5000, (err) => {
 ```html
 <!-- 默认作用域插槽 (default scoped slot) -->
 <!-- <my-component v-slot:default="{ msg }"> -->
-<my-component v-slot="{ msg }">
-  {{ msg }}
-</my-component>
+<my-component v-slot="{ msg }"> {{ msg }} </my-component>
 
 <!-- 具名插槽 (named slots) -->
 <my-component>
@@ -2504,7 +2514,8 @@ routes: [
          id: 666,
          title: '你好',
        },
-     }">跳转</router-link>
+     }"
+   >跳转</router-link>
    ```
 
 2. 接收参数：
@@ -2551,7 +2562,8 @@ routes: [
             id: 666,
             title: '你好',
           },
-        }">跳转</router-link>
+        }"
+      >跳转</router-link>
       ```
 
 ### 6.路由的 params 参数
@@ -2584,11 +2596,13 @@ routes: [
    ```vue
    <!-- 跳转并携带params参数，to的字符串写法 -->
    <router-link
-     :to="`/home/message/detail/${m.id}/${m.title}`">{{m.title}}</router-link>
+     :to="`/home/message/detail/${m.id}/${m.title}`"
+   >{{m.title}}</router-link>
    <router-link
      :to="{
        path: `/home/message/detail/${m.id}/${m.title}`,
-     }">{{m.title}}</router-link>
+     }"
+   >{{m.title}}</router-link>
 
    <!-- 跳转并携带params参数，to的对象写法，必须使用name配置 -->
    <router-link
@@ -2598,7 +2612,8 @@ routes: [
          id: 666,
          title: '你好',
        },
-     }">跳转</router-link>
+     }"
+   >跳转</router-link>
    ```
 
    > 特别注意：路由携带 params 参数时，若使用 to 的对象写法，则不能使用 path 配置项，必须使用 name 配置！
@@ -2693,7 +2708,7 @@ routes: [
 
 ```js
 // 方式1
-Vue.component("async-webpack-example", function(resolve) {
+Vue.component("async-webpack-example", function (resolve) {
   // 这个特殊的 `require` 语法将会告诉 webpack
   // 自动将你的构建代码切割成多个包，这些包
   // 会通过 Ajax 请求加载
