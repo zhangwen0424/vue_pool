@@ -68,6 +68,12 @@ This template should help get you started developing with Vue 3 in Vite. The tem
 vue --version
 ## 安装或者升级你的@vue/cli
 npm install -g @vue/cli
+## 通过 yarn 安装
+yarn global add @vue/cli
+# 升级 vue/cli版本
+npm update -g @vue/cli
+# 或者
+yarn global upgrade --latest @vue/cli
 ## 创建
 vue create vue_test
 ## 启动
