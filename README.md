@@ -1569,7 +1569,7 @@ export default {
 </style>
 ```
 
-## 3.Suspense
+### 3.Suspense
 
 - 等待异步组件时渲染一些额外内容，让应用有更好的用户体验
 
@@ -1630,14 +1630,16 @@ Child.vue
 import { ref } from "vue";
 export default {
   name: "Child",
-  setup() {
+  // 支持 async await 语法
+  async setup() {
     let sum = ref(0);
     // return { sum };
-    return new Promise((resolve) => {
+    let p = new Promise((resolve) => {
       setTimeout(() => {
         resolve({ sum });
       }, 1000);
     });
+    return await p;
   },
 };
 </script>
@@ -1649,9 +1651,9 @@ export default {
 </style>
 ```
 
-# 六、其他
+## 六、其他
 
-## 1.全局 API 的转移
+### 1.全局 API 的转移
 
 - Vue 2.x 有许多全局 API 和配置。
 
@@ -1686,7 +1688,7 @@ export default {
     | Vue.use                  | app.use                                     |
     | Vue.prototype            | app.config.globalProperties                 |
 
-## 2.其他改变
+### 2.其他改变
 
 - data 选项应始终被声明为一个函数。
 

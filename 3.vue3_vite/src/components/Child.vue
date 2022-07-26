@@ -8,14 +8,16 @@
 import { ref } from "vue";
 export default {
   name: "Child",
+  // 支持 async await 语法
   async setup() {
     let sum = ref(0);
     // return { sum };
-    return new Promise((resolve) => {
+    let p = new Promise((resolve) => {
       setTimeout(() => {
         resolve({ sum });
       }, 1000);
     });
+    return await p;
   },
 };
 </script>
