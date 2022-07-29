@@ -1,16 +1,14 @@
 # Vue 全家桶
 
+此项目为 vue 全家桶学习记录
+
 [codeserver 在线查看项目](https://github1s.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
 
-分类导航
+查看相关文档
 
-- 1.vue_basic [Vue 基础](https://github.com/zhangwen0424/vue_pool/tree/main/1.vue_basic)
-- 2.vue_test [Vue 脚手架](https://github.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
-- 3.vue3_vite [Vue3 基础](https://github.com/zhangwen0424/vue_pool/tree/main/3.vue3_vite)
-
-本文目录
-
-[toc]
+- 1.vue_basic [Vue2 基础文档](https://github.com/zhangwen0424/vue_pool/tree/main/1.vue_basic)
+- 2.vue_test [Vue2 脚手架文档](https://github.com/zhangwen0424/vue_pool/tree/main/2.vue_test)
+- 3.vue3_vite [Vue3 文档](https://github.com/zhangwen0424/vue_pool/tree/main/3.vue3_vite)
 
 # Vue 3 + Vite
 
