@@ -99,6 +99,8 @@ npm run serve -- --port 9000
 
 ### 2.使用 vite 创建
 
+Vite 需要 Node.js 版本 >= 12.0.0
+
 官方文档：https://v3.cn.vuejs.org/guide/installation.html#vite
 
 vite 官网：https://vitejs.cn
@@ -113,12 +115,15 @@ vite 官网：https://vitejs.cn
 <img src="https://cn.vitejs.dev/assets/bundler.37740380.png" style="width:500px;height:280px;float:left" /><img src="https://cn.vitejs.dev/assets/esm.3070012d.png" style="width:480px;height:280px" />
 
 ```bash
-## yarn 创建
-## 新建项目
+## 1.yarn 创建项目
+## 1.1快速新建项目
 yarn create vite my-app-project --template vue
-## 进入项目目录安装依赖
+## 1.2使用配置创建项目
+yarn create vite
+
+## 2.进入项目目录安装依赖
 yarn
-## 启动项目
+## 3.启动项目
 yarn dev
 
 ## 创建工程
